@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Scraper Studio</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="blur-bg-radial upper-left"></div>
+    <div class="blur-bg-radial lower-right"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon-wrapper">
+                    <i class="bi bi-map-fill logo-icon"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>G-Maps Scraper <span>Studio</span></h1>
+                    <p>High-performance Google Maps data extraction</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <span class="status-indicator online"></span>
+                <span class="status-label">API Ready</span>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-workspace">
+            <!-- Left Panel: Control Panel -->
+            <section class="control-panel">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <i class="bi bi-sliders card-icon"></i>
+                        <h2>Scraper Configuration</h2>
+                    </div>
+                    
+                    <form id="scrape-form" class="config-form">
+                        <!-- Query Input -->
+                        <div class="form-group">
+                            <label for="query">
+                                <i class="bi bi-search"></i> Search Query <span class="required">*</span>
+                            </label>
+                            <input type="text" id="query" name="query" required 
+                                   placeholder="e.g., Boutique hotels in Paris, Dentist in Austin" 
+                                   autocomplete="off">
+                            <small class="helper-text">Be specific with locations to get better results.</small>
+                        </div>
+
+                        <!-- Two Column Row -->
+                        <div class="form-row">
+                            <!-- Max Places -->
+                            <div class="form-group">
+                                <label for="max-places">
+                                    <i class="bi bi-hash"></i> Max Results
+                                </label>
+                                <input type="number" id="max-places" name="max_places" min="1" placeholder="All results">
+                                <small class="helper-text">Leave blank to scrape everything.</small>
+                            </div>
+
+                            <!-- Language -->
+                            <div class="form-group">
+                                <label for="lang">
+                                    <i class="bi bi-translate"></i> Language
+                                </label>
+                                <select id="lang" name="lang">
+                                    <option value="en">English (en)</option>
+                                    <option value="es">Español (es)</option>
+                                    <option value="fr">Français (fr)</option>
+                                    <option value="de">Deutsch (de)</option>
+                                    <option value="pt">Português (pt)</option>
+                                    <option value="it">Italiano (it)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Concurrency Slider -->
+                        <div class="form-group">
+                            <div class="slider-header">
+                                <label for="concurrency">
+                                    <i class="bi bi-lightning-charge"></i> Concurrency Threads
+                                </label>
+                                <span id="concurrency-val" class="badge">5</span>
+                            </div>
+                            <input type="range" id="concurrency" name="concurrency" min="1" max="15" value="5" class="slider-input">
+                            <div class="slider-labels">
+                                <span>Stealth (1)</span>
+                                <span>Balanced (5)</span>
+                                <span>Fast (15)</span>
+                            </div>
+                        </div>
+
+                        <!-- Toggle Switches -->
+                        <div class="form-group toggles-group">
+                            <div class="toggle-control">
+                                <span class="toggle-label">
+                                    <strong>Headless Mode</strong>
+                                    <span class="helper-text">Run browser in background (recommended)</span>
+                                </span>
+                                <label class="switch">
+                                    <input type="checkbox" id="headless" name="headless" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="submit-btn" class="btn btn-primary btn-submit">
+                            <span class="btn-text">Execute Scraper</span>
+                            <span class="btn-loader hidden">
+                                <span class="spinner"></span>
+                                Scraping Maps...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Info Cards -->
+                <div class="glass-card status-card">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle card-icon"></i>
+                        <h2>System Guidelines</h2>
+                    </div>
+                    <div class="guidelines-content">
+                        <div class="guideline-item">
+                            <i class="bi bi-shield-check"></i>
+                            <p><strong>Anti-Detection:</strong> Dynamic delays and user-agent rotation are automatically handled.</p>
+                        </div>
+                        <div class="guideline-item">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <p><strong>Rate Limits:</strong> Keep requests spaced by at least 60 seconds to avoid IP flagging.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Results & Logs -->
+            <section class="results-panel">
+                <!-- Terminal / Logger Box -->
+                <div class="glass-card terminal-card">
+                    <div class="card-header borderless">
+                        <div class="header-left">
+                            <span class="terminal-dot red"></span>
+                            <span class="terminal-dot yellow"></span>
+                            <span class="terminal-dot green"></span>
+                            <span class="terminal-title">Execution Console</span>
+                        </div>
+                        <button id="clear-console" class="btn-icon" title="Clear console">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                    <div class="terminal-body" id="terminal-output">
+                        <div class="terminal-line system">[System] G-Maps Scraper Studio initialized. Waiting for task configuration...</div>
+                    </div>
+                </div>
+
+                <!-- Results Output Card -->
+                <div class="glass-card results-card">
+                    <div class="card-header tabs-header">
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="grid-tab">
+                                <i class="bi bi-grid-3x3-gap"></i> Grid View
+                            </button>
+                            <button class="tab-btn" data-tab="table-tab">
+                                <i class="bi bi-table"></i> Table View
+                            </button>
+                            <button class="tab-btn" data-tab="json-tab">
+                                <i class="bi bi-braces"></i> Raw JSON
+                            </button>
+                        </div>
+                        <div class="actions" id="results-actions" style="display: none;">
+                            <span class="results-count-badge"><span id="results-count">0</span> records found</span>
+                            <label class="filter-checkbox-wrapper" for="no-website-filter">
+                                <input type="checkbox" id="no-website-filter">
+                                <span><i class="bi bi-globe2"></i> No Website Only</span>
+                            </label>
+                            <button id="download-csv" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-download"></i> CSV
+                            </button>
+                            <button id="download-excel" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-file-earmark-excel"></i> Excel
+                            </button>
+                            <button id="download-json" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-download"></i> JSON
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Tab: Grid View -->
+                        <div id="grid-tab" class="tab-content active">
+                            <div class="empty-state" id="grid-empty-state">
+                                <div class="empty-icon-wrapper">
+                                    <i class="bi bi-folder2-open"></i>
+                                </div>
+                                <h3>No Data Scraped Yet</h3>
+                                <p>Fill in the configuration panel on the left and click "Execute Scraper" to fetch real-time Google Maps listings.</p>
+                            </div>
+                            <div class="cards-grid hidden" id="cards-container"></div>
+                        </div>
+
+                        <!-- Tab: Table View -->
+                        <div id="table-tab" class="tab-content">
+                            <div class="empty-state" id="table-empty-state">
+                                <div class="empty-icon-wrapper">
+                                    <i class="bi bi-table"></i>
+                                </div>
+                                <h3>Table view is empty</h3>
+                                <p>Scraped data will be formatted as a structured spreadsheet here.</p>
+                            </div>
+                            <div class="table-container hidden" id="table-wrapper">
+                                <table class="data-table" id="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Business Name</th>
+                                            <th>Category</th>
+                                            <th>Rating</th>
+                                            <th>Reviews</th>
+                                            <th>Phone</th>
+                                            <th>Website</th>
+                                            <th>Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Raw JSON -->
+                        <div id="json-tab" class="tab-content">
+                            <div class="empty-state" id="json-empty-state">
+                                <div class="empty-icon-wrapper">
+                                    <i class="bi bi-code-slash"></i>
+                                </div>
+                                <h3>JSON Output</h3>
+                                <p>Raw API response payload will be inspectable here.</p>
+                            </div>
+                            <div class="json-container hidden" id="json-wrapper">
+                                <pre><code id="json-output"></code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Search History Section -->
+        <section class="history-section">
+            <div class="glass-card">
+                <div class="card-header history-header">
+                    <div class="header-left">
+                        <i class="bi bi-history card-icon"></i>
+                        <h2>Search History (SQLite)</h2>
+                    </div>
+                    <button id="clear-history" class="btn btn-secondary btn-sm" title="Clear all history">
+                        <i class="bi bi-trash3 text-danger"></i> Clear History
+                    </button>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container">
+                        <table class="data-table" id="history-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">Timestamp</th>
+                                    <th style="width: 35%;">Query</th>
+                                    <th>Max Results</th>
+                                    <th>Lang</th>
+                                    <th>Threads</th>
+                                    <th>Mode</th>
+                                    <th>Results Found</th>
+                                    <th style="text-align: right; width: 15%; padding-right: 24px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted" style="padding: 30px; text-align: center;">
+                                        No search history recorded yet.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

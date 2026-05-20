@@ -11,6 +11,8 @@ services:
     working_dir: /app # Set working directory
     networks:
       - shark
+    volumes:
+      - ./data:/app/data # Mount SQLite history database directory
     # Tmpfs mounts to keep temporary files in RAM
     tmpfs:
       - /tmp:size=512M

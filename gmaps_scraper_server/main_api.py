@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Optional, List, Dict, Any
 import logging
 import asyncio
+from gmaps_scraper_server.history_db import init_db, save_search, get_history, delete_history_item, clear_all_history
 
 # Import the scraper function (adjust path if necessary)
 try:
@@ -21,6 +24,14 @@ app = FastAPI(
     description="API to trigger Google Maps scraping based on a query.",
     version="0.1.0",
 )
+
+@app.on_event("startup")
+def startup_event():
+    logging.info("Initializing search history database...")
+    init_db()
+
+# Mount the static files directory to serve HTML/CSS/JS
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/scrape", response_model=List[Dict[str, Any]])
 async def run_scrape(
@@ -50,6 +61,14 @@ async def run_scrape(
             timeout=300  # 5 minutes timeout
         )
         logging.info(f"Scraping finished for query: '{query}'. Found {len(results)} results.")
+        save_search(
+            query=query,
+            max_places=max_places,
+            lang=lang,
+            concurrency=concurrency,
+            headless=headless,
+            results_count=len(results)
+        )
         return results
     except asyncio.TimeoutError:
         logging.error(f"Scraping timeout for query '{query}' after 300 seconds")
@@ -90,6 +109,14 @@ async def run_scrape_get(
             timeout=300  # 5 minutes timeout
         )
         logging.info(f"Scraping finished for query: '{query}'. Found {len(results)} results.")
+        save_search(
+            query=query,
+            max_places=max_places,
+            lang=lang,
+            concurrency=concurrency,
+            headless=headless,
+            results_count=len(results)
+        )
         return results
     except asyncio.TimeoutError:
         logging.error(f"Scraping timeout for query '{query}' after 300 seconds")
@@ -102,11 +129,24 @@ async def run_scrape_get(
         # Consider more specific error handling based on scraper exceptions
         raise HTTPException(status_code=500, detail=f"An internal error occurred during scraping: {str(e)}")
 
+@app.get("/history", response_model=List[Dict[str, Any]])
+async def fetch_history(limit: int = Query(10, description="Number of history items to return.")):
+    return get_history(limit)
 
-# Basic root endpoint for health check or info
+@app.delete("/history/{item_id}")
+async def delete_history(item_id: int):
+    delete_history_item(item_id)
+    return {"status": "success"}
+
+@app.delete("/history")
+async def clear_history():
+    clear_all_history()
+    return {"status": "success"}
+
+# Serve the Web User Interface at the root endpoint
 @app.get("/")
 async def read_root():
-    return {"message": "Google Maps Scraper API is running."}
+    return FileResponse("static/index.html")
 
 # Example for running locally (uvicorn main_api:app --reload)
 # if __name__ == "__main__":
